@@ -1,3 +1,4 @@
+import { getMusicLyric } from '@/request/api/item';
 import { createStore } from 'vuex'
 
 export default createStore({
@@ -19,6 +20,7 @@ export default createStore({
     isFooterMusic: true,//判断底部组件是否需要显示
     isbtnShow: true,//暂停按钮的显示
     detailShow: false,//点击底部组件，歌曲详情页的显示
+    lyricList: {},//歌词
   },
   getters: {
   },
@@ -35,9 +37,17 @@ export default createStore({
     },
     updateDetailShow: function (state) {
       state.detailShow = !state.detailShow;
+    },
+    updateLyricList: function (state, value) {
+      state.lyricList = value;
     }
   },
   actions: {
+    getLyric: async function (context, value) {
+      let res = await getMusicLyric(value)
+      console.log(res)
+      context.commit("updateLyricList", res.data.lrc)
+    }
   },
   modules: {
   }

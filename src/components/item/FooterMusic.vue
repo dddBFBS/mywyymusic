@@ -2,7 +2,7 @@
   <div class="FooterMusic">
     <!-- 在这里写弹出层（遮罩层上的内容） -->
     <van-popup v-model:show="detailShow" position="right" :style="{ height: '100%', width: '100%' }">
-      <music-detail :musicList="playList[playListIndex]"></music-detail>
+      <music-detail :musicList="playList[playListIndex]" :play="play" :isbtnShow="isbtnShow"></music-detail>
     </van-popup>
     <div class="footerLeft" @click="updateDetailShow">
       <img :src="playList[playListIndex].al.picUrl" alt="">
@@ -72,6 +72,10 @@ export default {
   },
   mounted() {
     console.log(this.$refs);
+    this.$store.dispatch("getLyric", this.playList[this.playListIndex].id)
+  },
+  updated() {
+    this.$store.dispatch("getLyric", this.playList[this.playListIndex].id)
   }
 }
 </script>
