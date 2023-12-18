@@ -44,7 +44,7 @@ import { mapMutations } from 'vuex';
 export default {
   props: ['itemlist', 'subscribedCount'],
   setup(props) {
-    console.log(props);
+    //console.log(props);
   },
   methods: {
     playMusic: function (i) {

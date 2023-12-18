@@ -21,6 +21,7 @@ export default createStore({
     isbtnShow: true,//暂停按钮的显示
     detailShow: false,//点击底部组件，歌曲详情页的显示
     lyricList: {},//歌词
+    currentTime: 0,//当前播放时间
   },
   getters: {
   },
@@ -40,6 +41,10 @@ export default createStore({
     },
     updateLyricList: function (state, value) {
       state.lyricList = value;
+    },
+    updateCurrentTime: function (state, value) {
+      //console.log(state.currentTime);
+      state.currentTime = value;
     }
   },
   actions: {

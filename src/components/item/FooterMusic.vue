@@ -2,7 +2,8 @@
   <div class="FooterMusic">
     <!-- 在这里写弹出层（遮罩层上的内容） -->
     <van-popup v-model:show="detailShow" position="right" :style="{ height: '100%', width: '100%' }">
-      <music-detail :musicList="playList[playListIndex]" :play="play" :isbtnShow="isbtnShow"></music-detail>
+      <music-detail :musicList="playList[playListIndex]" :play="play" :isbtnShow="isbtnShow"
+        :currentTime="currentTime"></music-detail>
     </van-popup>
     <div class="footerLeft" @click="updateDetailShow">
       <img :src="playList[playListIndex].al.picUrl" alt="">
@@ -35,8 +36,13 @@ export default {
   components: {
     MusicDetail,
   },
+  data() {
+    return {
+      interval: 0,
+    }
+  },
   computed: {
-    ...mapState(['playList', 'playListIndex', 'isbtnShow', 'detailShow'])
+    ...mapState(['playList', 'playListIndex', 'isbtnShow', 'detailShow', 'currentTime'])
   },
   methods: {
     play: function () {
@@ -44,12 +50,19 @@ export default {
       if (this.$refs.audio.paused) {
         this.$refs.audio.play();
         this.updateIsbtnShow(false);
+        this.updateTime();//播放就调用函数传递当前播放时间数据
       } else {
         this.$refs.audio.pause();
         this.updateIsbtnShow(true);
+        clearInterval(this.interval)//暂停就清除定时器
       }
     },
-    ...mapMutations(['updateIsbtnShow', 'updateDetailShow'])
+    updateTime: function () {
+      this.interval = setInterval(() => {
+        this.updateCurrentTime(this.$refs.audio.currentTime)
+      }, 1000);
+    },
+    ...mapMutations(['updateIsbtnShow', 'updateDetailShow', 'updateCurrentTime'])
 
   },
   //监听
@@ -73,6 +86,7 @@ export default {
   mounted() {
     console.log(this.$refs);
     this.$store.dispatch("getLyric", this.playList[this.playListIndex].id)
+    this.updateTime();//一进页面就需要已经显示相应歌词
   },
   updated() {
     this.$store.dispatch("getLyric", this.playList[this.playListIndex].id)

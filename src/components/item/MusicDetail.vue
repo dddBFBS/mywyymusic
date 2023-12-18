@@ -20,16 +20,21 @@
         </svg>
       </div>
     </div>
-    <div class="musicLyric" v-show="isLyricShow">
-      {{ lyric }}
-    </div>
     <div class="detailContent" v-show="!isLyricShow">
       <img src="@/assets/needle-ab.png" alt="" class="img_needle" :class="{ img_needle_active: !isbtnShow }">
       <img src="@/assets/cd.png" alt="" class="img_cd">
-      <img :src="musicList.al.picUrl" alt="" class="img_ar"
+      <img :src="musicList.al.picUrl" alt="" @click="toggleLyricShow" class="img_ar"
         :class="{ img_ar_active: !isbtnShow, img_ar_paused: isbtnShow }">
     </div>
-
+    <div class="musicLyric" @click="toggleLyricShow" v-show="isLyricShow" ref="musicLyric">
+      <!-- 使用循环显示每句歌词 -->
+      <p v-for="item in lyric" :key="item" :class="{
+        active:
+          currentTime * 1000 >= item.time && currentTime * 1000 < item.nextTime,
+      }">
+        {{ item.lrc }}
+      </p>
+    </div>
     <div class="detailFooter">
       <div class="footerTop">
         <svg class="icon" aria-hidden="true">
@@ -55,7 +60,7 @@
         <svg class="icon" aria-hidden="true">
           <use xlink:href="#icon-xunhuan"></use>
         </svg>
-        <svg class="icon" aria-hidden="true">
+        <svg class="icon" aria-hidden="true" @click="goPlay(-1)">
           <use xlink:href="#icon-shangyishoushangyige"></use>
         </svg>
         <svg class="icon bofang" aria-hidden="true" @click="play" v-if="isbtnShow">
@@ -64,7 +69,7 @@
         <svg class="icon bofang" aria-hidden="true" @click="play" v-else>
           <use xlink:href="#icon-zanting"></use>
         </svg>
-        <svg class="icon" aria-hidden="true">
+        <svg class="icon" aria-hidden="true" @click="goPlay(1)">
           <use xlink:href="#icon-xiayigexiayishou"></use>
         </svg>
         <svg class="icon" aria-hidden="true">
@@ -77,26 +82,89 @@
   </div>
 </template>
 <script>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Vue3Marquee } from 'vue3-marquee';
-import { mapMutations, mapState, useStore } from 'vuex';
+import { mapMutations, useStore } from 'vuex';
 export default {
   components: {
     Vue3Marquee,
   },
-  props: ['musicList', 'play', 'isbtnShow'],
+  props: ['musicList', 'play', 'isbtnShow', 'currentTime'],
   setup(props) {
-    console.log(props);
-    let isLyricShow = true;
+    //console.log(props);
+
+    //磁盘和歌词切换
+    let isLyricShow = ref(false);
+    function toggleLyricShow() {
+      isLyricShow.value = !isLyricShow.value;
+    }
+
+
     const store = useStore();
+
+    //歌词处理
     // 复杂对象和数组不能直接使用插值语法，使用计算属性将其转化为可以渲染的形式
     const lyric = computed(() => {
-      return store.state.lyricList.lyric;
+      let arr;
+      if (store.state.lyricList.lyric) {
+        //先分割，再调用map循环返回新数组，arr接收
+        arr = store.state.lyricList.lyric.split(/\r?\n/).map((item, i) => {
+          //slice包头不包尾
+          let min = item.slice(item.indexOf('[') + 1, item.indexOf(':'));
+          let sec = item.slice(item.indexOf(':') + 1, item.indexOf('.'));
+          let mill = item.slice(item.indexOf('.') + 1, item.indexOf(']'));
+          let lrc = item.slice(item.indexOf(']') + 1, item.length);
+          let time = parseInt(min) * 60 * 1000 + parseInt(sec) * 1000 + parseInt(mill);
+          //console.log(min, sec, mill, lrc);
+          //以对象形式返回，切割的每个部分作为对象的属性
+          return { min, sec, mill, lrc, time }
+        });
+        arr.forEach((item, i) => {
+          if (i === arr.length - 1 || isNaN(arr[i + 1].time)) {
+            item.nextTime = 1000000;
+          } else {
+            item.nextTime = arr[i + 1].time;
+          }
+        });
+
+
+      }
+      //console.log(arr);
+      return arr;
     });
+
+
     return {
-      ...mapMutations(['updateDetailShow']),
+      ...mapMutations(['updateDetailShow', 'updatePlayListIndex']),
       lyric,
       isLyricShow,
+      toggleLyricShow,
+    }
+  },
+
+  methods: {
+    goPlay: function (i) {
+      let index = this.$store.state.playListIndex;
+      index += i;
+      if (index < 0) {
+        index = this.$store.state.playList.length - 1;
+      } else if (index === this.$store.state.playList.length) {
+        index = 0;
+      }
+      this.updatePlayListIndex(index);
+    }
+  },
+
+  //歌词随时间显示样式
+  watch: {
+    currentTime: function () {
+      let p = document.querySelector("p.active");
+      // console.log([p]);
+      if (p) {
+        if (p.offsetTop > 300) {
+          this.$refs.musicLyric.scrollTop = p.offsetTop - 300;
+        }
+      }
 
     }
   }
@@ -205,6 +273,31 @@ export default {
       100% {
         transform: rotateZ(360deg);
       }
+    }
+  }
+
+  .musicLyric {
+    width: 100%;
+    height: 8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: .4rem;
+    // 有溢出，设置滚动条
+    overflow: scroll;
+
+    p {
+      width: 80%;
+      color: #cac7c7;
+      margin-bottom: .4rem;
+      margin-left: 10%;
+      margin-right: 10%;
+      text-align: center;
+    }
+
+    .active {
+      color: #fff;
+      font-size: .5rem;
     }
   }
 
