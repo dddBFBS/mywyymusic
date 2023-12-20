@@ -55,6 +55,8 @@
 
       </div>
       <div class="footerContent">
+        <!-- H5新增表单range 双向绑定当前时间 -->
+        <input type="range" class="range" min="0" :max="duration" v-model="currentTime" step="0.05" ref="range">
       </div>
       <div class="footer">
         <svg class="icon" aria-hidden="true">
@@ -84,16 +86,16 @@
 <script>
 import { computed, ref } from 'vue';
 import { Vue3Marquee } from 'vue3-marquee';
-import { mapMutations, useStore } from 'vuex';
+import { mapState, mapMutations, useStore } from 'vuex';
 export default {
   components: {
     Vue3Marquee,
   },
-  props: ['musicList', 'play', 'isbtnShow', 'currentTime'],
+  props: ['musicList', 'play', 'isbtnShow', 'addDuration'],
   setup(props) {
     //console.log(props);
 
-    //磁盘和歌词切换
+    //磁盘和歌词切换，响应式数据的创建
     let isLyricShow = ref(false);
     function toggleLyricShow() {
       isLyricShow.value = !isLyricShow.value;
@@ -101,6 +103,16 @@ export default {
 
 
     const store = useStore();
+
+    //使用计算属性进行双向绑定当前时间
+    // const now = computed(() => {
+    //   return store.state.currentTime;
+    // })
+
+    //duration也需要转换为计算属性后绑定
+    // const max = computed(() => {
+    //   return store.state.duration;
+    // })
 
     //歌词处理
     // 复杂对象和数组不能直接使用插值语法，使用计算属性将其转化为可以渲染的形式
@@ -134,30 +146,43 @@ export default {
     });
 
 
+
     return {
-      ...mapMutations(['updateDetailShow', 'updatePlayListIndex']),
       lyric,
       isLyricShow,
       toggleLyricShow,
+      //now,
+      //max
     }
+  },
+
+  computed: {
+    ...mapState(["currentTime", "playListIndex", "playList", 'duration'])
   },
 
   methods: {
-    goPlay: function (i) {
-      let index = this.$store.state.playListIndex;
-      index += i;
+    //歌曲上下一首的切换
+    goPlay: function (num) {
+      let index = this.playListIndex + num;
       if (index < 0) {
-        index = this.$store.state.playList.length - 1;
-      } else if (index === this.$store.state.playList.length) {
+        index = this.playList.length - 1;
+      } else if (index == this.playList.length) {
         index = 0;
       }
       this.updatePlayListIndex(index);
-    }
+    },
+    ...mapMutations(['updateDetailShow', 'updatePlayListIndex']),
   },
 
-  //歌词随时间显示样式
+  //挂载就更新歌曲时长
+  mounted() {
+    this.addDuration();
+
+  },
+
+  //歌词随时间显示样式,到最后时长自动进入下一首
   watch: {
-    currentTime: function () {
+    currentTime: function (newValue) {
       let p = document.querySelector("p.active");
       // console.log([p]);
       if (p) {
@@ -165,8 +190,20 @@ export default {
           this.$refs.musicLyric.scrollTop = p.offsetTop - 300;
         }
       }
+      if (newValue === this.duration) {
 
-    }
+        if (this.playListIndex === this.playList.length - 1) {
+          this.updatePlayListIndex(0);
+          this.play()
+        } else {
+          this.updatePlayListIndex(this.playListIndex + 1);
+        }
+      }
+
+    },
+
+
+
   }
 }
 </script>

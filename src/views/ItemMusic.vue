@@ -19,18 +19,18 @@ export default {
     });
     onMounted(async () => {
       let id = useRoute().query.id
-      console.log(id);
+      //console.log(id);
       //歌单详情页
       let res = await getMusicItemList(id);
-      console.log(res);
+      //console.log(res);
       state.playlist = res.data.playlist;
       //state.itemlist = res.data.playlist.tracks;
-      console.log(state.playlist);
+      //console.log(state.playlist);
       //歌单的歌曲
       let result = await getItemList(id);
-      console.log(result);
+      //console.log(result);
       state.itemlist = result.data.songs;
-      console.log(state.itemlist);
+      //console.log(state.itemlist);
       //防止页面刷新数据丢失，把数据保存到sessionStorage或localStorage
       //state 的对象转换为字符串，并存储在 sessionStorage 中的名为 'itemDetail' 的键下
       sessionStorage.setItem('itemDetail', JSON.stringify(state))

@@ -22,6 +22,7 @@ export default createStore({
     detailShow: false,//点击底部组件，歌曲详情页的显示
     lyricList: {},//歌词
     currentTime: 0,//当前播放时间
+    duration: 0,//歌曲总时长
   },
   getters: {
   },
@@ -45,12 +46,15 @@ export default createStore({
     updateCurrentTime: function (state, value) {
       //console.log(state.currentTime);
       state.currentTime = value;
+    },
+    updateDuration: function (state, value) {
+      state.duration = value;
     }
   },
   actions: {
     getLyric: async function (context, value) {
       let res = await getMusicLyric(value)
-      console.log(res)
+      //console.log(res)
       context.commit("updateLyricList", res.data.lrc)
     }
   },

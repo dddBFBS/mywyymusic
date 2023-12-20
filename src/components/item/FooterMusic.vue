@@ -3,7 +3,7 @@
     <!-- 在这里写弹出层（遮罩层上的内容） -->
     <van-popup v-model:show="detailShow" position="right" :style="{ height: '100%', width: '100%' }">
       <music-detail :musicList="playList[playListIndex]" :play="play" :isbtnShow="isbtnShow"
-        :currentTime="currentTime"></music-detail>
+        :addDuration="addDuration"></music-detail>
     </van-popup>
     <div class="footerLeft" @click="updateDetailShow">
       <img :src="playList[playListIndex].al.picUrl" alt="">
@@ -42,7 +42,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['playList', 'playListIndex', 'isbtnShow', 'detailShow', 'currentTime'])
+    ...mapState(['playList', 'playListIndex', 'isbtnShow', 'detailShow', 'currentTime', 'duration'])
   },
   methods: {
     play: function () {
@@ -57,23 +57,36 @@ export default {
         clearInterval(this.interval)//暂停就清除定时器
       }
     },
+
+    //更新歌曲时长的函数
+    addDuration: function () {
+      this.updateDuration(this.$refs.audio.duration)
+      console.log(this.$store.state.duration);
+    },
+
+    //更新当前播放时间
     updateTime: function () {
       this.interval = setInterval(() => {
         this.updateCurrentTime(this.$refs.audio.currentTime)
       }, 1000);
     },
-    ...mapMutations(['updateIsbtnShow', 'updateDetailShow', 'updateCurrentTime'])
+
+    ...mapMutations(['updateIsbtnShow', 'updateDetailShow', 'updateCurrentTime', 'updateDuration'])
 
   },
   //监听
   watch: {
     playListIndex: function () {
+      //如果下标发生了改变，就更新duration
+      this.addDuration();
+      //console.log(this.$store.state.duration);
       //如果下标发生了改变，就自动播放音乐
       this.$refs.audio.autoplay = true;
       if (this.$refs.audio.paused) {
         //如果是暂停状态，改变图标
         this.updateIsbtnShow(false);
       }
+
     },
     //还需要监听播放列表
     playList: function () {
@@ -87,9 +100,13 @@ export default {
     console.log(this.$refs);
     this.$store.dispatch("getLyric", this.playList[this.playListIndex].id)
     this.updateTime();//一进页面就需要已经显示相应歌词
+
   },
   updated() {
-    this.$store.dispatch("getLyric", this.playList[this.playListIndex].id)
+    this.$store.dispatch("getLyric", this.playList[this.playListIndex].id);
+    //模板每次更新都更新歌曲时长
+    //this.addDuration();
+
   }
 }
 </script>
