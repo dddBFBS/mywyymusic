@@ -1,4 +1,5 @@
 import { getMusicLyric } from '@/request/api/item';
+import { getEmailLogin } from '@/request/api/home';
 import { createStore } from 'vuex'
 
 export default createStore({
@@ -12,7 +13,7 @@ export default createStore({
         pic_str: "109951167195846340"
       },
       id: 1914893736,
-      //name: "Oops",
+      name: "BABYDOLL",
       ar: [{ name: "Ari Abdul" }]
 
     }],
@@ -23,6 +24,10 @@ export default createStore({
     lyricList: {},//歌词
     currentTime: 0,//当前播放时间
     duration: 0,//歌曲总时长
+    isLogin: false,//判断是否登录
+    isFooterMusicShow: true,//判断底部组件是否显示 
+    token: "",//保存token
+    user: {},//用户信息
   },
   getters: {
   },
@@ -33,6 +38,9 @@ export default createStore({
     updatePlayList: function (state, value) {
       state.playList = value;
       console.log(state.playList);
+    },
+    pushPlayList: function (state, value) {
+      state.playList.push(value)
     },
     updatePlayListIndex: function (state, value) {
       state.playListIndex = value;
@@ -49,6 +57,18 @@ export default createStore({
     },
     updateDuration: function (state, value) {
       state.duration = value;
+      //console.log(state.duration);
+    },
+    updateIsLogin: function (state, value) {
+      state.isLogin = value;
+    },
+    updateToken: function (state, value) {
+      state.token = value;
+      //保存到sessionStorage中
+      sessionStorage.setItem('token', state.token);
+    },
+    updateUserInfo: function (state, value) {
+      state.user = value;
     }
   },
   actions: {
@@ -56,6 +76,11 @@ export default createStore({
       let res = await getMusicLyric(value)
       //console.log(res)
       context.commit("updateLyricList", res.data.lrc)
+    },
+    getLogin: async function (context, value) {
+      let res = await getEmailLogin(value);
+      //console.log(res);
+      return res;
     }
   },
   modules: {

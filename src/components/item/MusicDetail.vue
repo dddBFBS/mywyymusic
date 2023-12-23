@@ -179,6 +179,9 @@ export default {
     this.addDuration();
 
   },
+  updated() {
+    this.addDuration();
+  },
 
   //歌词随时间显示样式,到最后时长自动进入下一首
   watch: {
@@ -191,13 +194,7 @@ export default {
         }
       }
       if (newValue === this.duration) {
-
-        if (this.playListIndex === this.playList.length - 1) {
-          this.updatePlayListIndex(0);
-          this.play()
-        } else {
-          this.updatePlayListIndex(this.playListIndex + 1);
-        }
+        this.goPlay(1);
       }
 
     },

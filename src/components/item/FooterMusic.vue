@@ -8,7 +8,7 @@
     <div class="footerLeft" @click="updateDetailShow">
       <img :src="playList[playListIndex].al.picUrl" alt="">
       <div>
-        <p>{{ playList[playListIndex].al.name }}</p>
+        <p>{{ playList[playListIndex].name }}</p>
         <span>横滑切换上下首哦</span>
       </div>
     </div>
@@ -42,7 +42,8 @@ export default {
     }
   },
   computed: {
-    ...mapState(['playList', 'playListIndex', 'isbtnShow', 'detailShow', 'currentTime', 'duration'])
+    ...mapState(['playList', 'playListIndex', 'isbtnShow', 'detailShow', 'currentTime', 'duration']),
+
   },
   methods: {
     play: function () {
@@ -61,7 +62,7 @@ export default {
     //更新歌曲时长的函数
     addDuration: function () {
       this.updateDuration(this.$refs.audio.duration)
-      console.log(this.$store.state.duration);
+      //console.log(this.$store.state.duration);
     },
 
     //更新当前播放时间
@@ -77,9 +78,6 @@ export default {
   //监听
   watch: {
     playListIndex: function () {
-      //如果下标发生了改变，就更新duration
-      this.addDuration();
-      //console.log(this.$store.state.duration);
       //如果下标发生了改变，就自动播放音乐
       this.$refs.audio.autoplay = true;
       if (this.$refs.audio.paused) {
@@ -101,11 +99,17 @@ export default {
     this.$store.dispatch("getLyric", this.playList[this.playListIndex].id)
     this.updateTime();//一进页面就需要已经显示相应歌词
 
+
+  },
+  beforeUpdate() {
+
   },
   updated() {
     this.$store.dispatch("getLyric", this.playList[this.playListIndex].id);
     //模板每次更新都更新歌曲时长
-    //this.addDuration();
+    this.addDuration();
+
+
 
   }
 }
